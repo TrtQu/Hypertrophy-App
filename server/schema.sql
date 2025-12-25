@@ -7,7 +7,7 @@ CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
-    display_name TEXT,
+    username TEXT NOT NULL UNIQUE,
     created_at TEXT NOT NULL
 );
 
