@@ -7,6 +7,8 @@ import {
   Dimensions,
   Platform,
   ScrollView,
+  Modal,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
@@ -27,20 +29,95 @@ const DAY_CELL_HEIGHT_RATIO = isSmallDevice ? 0.75 : 0.85;
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  
+  // In a real app, this would be stored in a database or AsyncStorage
   const [workoutData, setWorkoutData] = useState({
     todaysSplit: 'Push Day',
     currentStreak: 9,
     weeklyCompletion: 67,
-    completedDays: [1, 3, 5, 8, 10, 12, 15, 17, 19, 22],
-    missedDays: [7, 14, 21],
-    restDays: [6, 13, 20],
+    // Store dates as ISO strings for easier comparison
+    completedDays: {},  // { '2024-12-01': true, '2024-12-03': true }
+    missedDays: {},
+    restDays: {},
   });
+
+  // Navigate to previous month
+  const goToPreviousMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  };
+
+  // Navigate to next month
+  const goToNextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+  };
+
+  // Go to current month
+  const goToToday = () => {
+    setCurrentMonth(new Date());
+  };
+
+  // Handle day press
+  const handleDayPress = (day) => {
+    const dateKey = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    setSelectedDay({ day, dateKey });
+    setModalVisible(true);
+  };
+
+  // Mark day with status
+  const markDay = (status) => {
+    if (!selectedDay) return;
+
+    const { dateKey } = selectedDay;
+    
+    setWorkoutData(prev => {
+      const newData = { ...prev };
+      
+      // Remove from all categories first
+      delete newData.completedDays[dateKey];
+      delete newData.missedDays[dateKey];
+      delete newData.restDays[dateKey];
+      
+      // Add to selected category
+      if (status === 'completed') {
+        newData.completedDays[dateKey] = true;
+      } else if (status === 'missed') {
+        newData.missedDays[dateKey] = true;
+      } else if (status === 'rest') {
+        newData.restDays[dateKey] = true;
+      }
+      
+      return newData;
+    });
+    
+    setModalVisible(false);
+    setSelectedDay(null);
+  };
+
+  // Clear day status
+  const clearDay = () => {
+    if (!selectedDay) return;
+
+    const { dateKey } = selectedDay;
+    
+    setWorkoutData(prev => {
+      const newData = { ...prev };
+      delete newData.completedDays[dateKey];
+      delete newData.missedDays[dateKey];
+      delete newData.restDays[dateKey];
+      return newData;
+    });
+    
+    setModalVisible(false);
+    setSelectedDay(null);
+  };
 
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
       
-      {/* Hero Section - extends past notch */}
+      {/* extends past notch */}
       <LinearGradient
         colors={['#6366f1', '#8b5cf6']}
         style={[styles.heroSection, { paddingTop: insets.top + (isSmallDevice ? 12 : 20) }]}
@@ -75,11 +152,19 @@ export default function HomeScreen() {
         <View style={styles.calendarSection}>
           <View style={styles.calendarHeader}>
             <Text style={styles.sectionTitle}>Consistency Calendar</Text>
-            <TouchableOpacity>
-              <Text style={styles.monthText}>
-                {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.monthNavigation}>
+              <TouchableOpacity onPress={goToPreviousMonth} style={styles.navButton}>
+                <Text style={styles.navButtonText}>←</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={goToToday}>
+                <Text style={styles.monthText}>
+                  {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={goToNextMonth} style={styles.navButton}>
+                <Text style={styles.navButtonText}>→</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           <CalendarGrid
@@ -87,6 +172,7 @@ export default function HomeScreen() {
             completedDays={workoutData.completedDays}
             missedDays={workoutData.missedDays}
             restDays={workoutData.restDays}
+            onDayPress={handleDayPress}
           />
 
           {/* Calendar Legend */}
@@ -109,11 +195,63 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Day Status Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              {selectedDay && `${currentMonth.toLocaleString('default', { month: 'long' })} ${selectedDay.day}`}
+            </Text>
+            <Text style={styles.modalSubtitle}>Mark this day as:</Text>
+            
+            <TouchableOpacity 
+              style={[styles.modalButton, { backgroundColor: '#10b981' }]}
+              onPress={() => markDay('completed')}
+            >
+              <Text style={styles.modalButtonText}>✓ Completed</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.modalButton, { backgroundColor: '#ef4444' }]}
+              onPress={() => markDay('missed')}
+            >
+              <Text style={styles.modalButtonText}>✗ Missed</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.modalButton, { backgroundColor: '#f59e0b' }]}
+              onPress={() => markDay('rest')}
+            >
+              <Text style={styles.modalButtonText}>☾ Rest Day</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.modalButton, { backgroundColor: '#6b7280' }]}
+              onPress={clearDay}
+            >
+              <Text style={styles.modalButtonText}>Clear Status</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.modalCancelButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.modalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
-function CalendarGrid({ currentMonth, completedDays, missedDays, restDays }) {
+function CalendarGrid({ currentMonth, completedDays, missedDays, restDays, onDayPress }) {
   const daysInMonth = new Date(
     currentMonth.getFullYear(),
     currentMonth.getMonth() + 1,
@@ -126,16 +264,22 @@ function CalendarGrid({ currentMonth, completedDays, missedDays, restDays }) {
     1
   ).getDay();
 
-  const today = new Date().getDate();
+  const today = new Date();
   const isCurrentMonth =
-    currentMonth.getMonth() === new Date().getMonth() &&
-    currentMonth.getFullYear() === new Date().getFullYear();
+    currentMonth.getMonth() === today.getMonth() &&
+    currentMonth.getFullYear() === today.getFullYear();
 
   const getDayStatus = (day) => {
-    if (completedDays.includes(day)) return 'completed';
-    if (missedDays.includes(day)) return 'missed';
-    if (restDays.includes(day)) return 'rest';
-    if (isCurrentMonth && day > today) return 'upcoming';
+    const dateKey = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    
+    if (completedDays[dateKey]) return 'completed';
+    if (missedDays[dateKey]) return 'missed';
+    if (restDays[dateKey]) return 'rest';
+    
+    // Check if day is in the future
+    const dayDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+    if (dayDate > today) return 'upcoming';
+    
     return 'default';
   };
 
@@ -161,7 +305,7 @@ function CalendarGrid({ currentMonth, completedDays, missedDays, restDays }) {
     // Actual days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const status = getDayStatus(day);
-      const isToday = isCurrentMonth && day === today;
+      const isToday = isCurrentMonth && day === today.getDate();
 
       days.push(
         <TouchableOpacity
@@ -171,6 +315,7 @@ function CalendarGrid({ currentMonth, completedDays, missedDays, restDays }) {
             { backgroundColor: getDayColor(status) },
             isToday && styles.todayBorder,
           ]}
+          onPress={() => onDayPress(day)}
         >
           <Text style={styles.dayText}>{day}</Text>
         </TouchableOpacity>
@@ -287,15 +432,26 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   calendarHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: isSmallDevice ? 6 : 8,
   },
   sectionTitle: {
     fontSize: isSmallDevice ? 15 : 16,
     fontWeight: '600',
     color: '#f9fafb',
+    marginBottom: 8,
+  },
+  monthNavigation: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  navButton: {
+    padding: 8,
+  },
+  navButtonText: {
+    fontSize: 20,
+    color: '#818cf8',
+    fontWeight: 'bold',
   },
   monthText: {
     fontSize: isSmallDevice ? 12 : 13,
@@ -393,6 +549,58 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     color: '#e5e7eb',
     fontSize: isSmallDevice ? 15 : 16,
+    fontWeight: '600',
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#1f2937',
+    borderRadius: 20,
+    padding: 24,
+    width: width * 0.85,
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#9ca3af',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalButton: {
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalCancelButton: {
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 8,
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#4b5563',
+  },
+  modalCancelText: {
+    color: '#9ca3af',
+    fontSize: 16,
     fontWeight: '600',
   },
 });
