@@ -46,6 +46,7 @@ CREATE TABLE sets (
     workout_id INTEGER NOT NULL,
     exercise_id INTEGER NOT NULL,
     set_number INTEGER NOT NULL,
+    side TEXT NOT NULL DEFAULT 'both' CHECK (side IN ('left','right','both')),
     reps INTEGER NOT NULL,
     weight REAL NOT NULL,
     is_warmup INTEGER NOT NULL DEFAULT 0,
