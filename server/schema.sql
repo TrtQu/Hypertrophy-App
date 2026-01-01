@@ -1,5 +1,6 @@
 PRAGMA foreign_keys = ON;
 
+-- This is a single-line comment
 -- =====================
 -- users
 -- =====================
