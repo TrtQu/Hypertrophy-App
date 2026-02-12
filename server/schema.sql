@@ -68,3 +68,36 @@ ON sets(workout_id);
 
 CREATE INDEX idx_sets_exercise
 ON sets(exercise_id);
+
+-- =====================
+-- workout_plans
+-- =====================
+CREATE TABLE workout_plans (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- =====================
+-- plan_exercises
+-- =====================
+CREATE TABLE plan_exercises (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    plan_id INTEGER NOT NULL,
+    exercise_id INTEGER NOT NULL,
+    order_in_plan INTEGER NOT NULL,
+    target_sets INTEGER,
+    target_reps INTEGER,
+    notes TEXT,
+    FOREIGN KEY (plan_id) REFERENCES workout_plans(id),
+    FOREIGN KEY (exercise_id) REFERENCES exercises(id)
+);
+
+-- =====================
+-- Additional Indexes
+-- =====================
+CREATE INDEX idx_plan_exercises_plan
+ON plan_exercises(plan_id);
