@@ -34,8 +34,10 @@ CREATE TABLE workouts (
     workout_date TEXT NOT NULL,
     name TEXT,
     notes TEXT,
+    plan_id INTEGER,
     created_at TEXT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (plan_id) REFERENCES workout_plans(id)
 );
 
 -- =====================
