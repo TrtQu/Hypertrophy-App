@@ -25,11 +25,20 @@ INSERT INTO exercises (user_id, name, muscle_group, created_at)
 VALUES
   (1, 'Bench Press',        'Chest',    datetime('now')),
   (1, 'Incline DB Press',   'Chest',    datetime('now')),
+  (1, 'Flat DB Press',      'Chest',    datetime('now')),
+  (1, 'Pec Fly',            'Chest',    datetime('now')),
   (1, 'Overhead Press',     'Shoulders',datetime('now')),
   (1, 'Lateral Raise',      'Shoulders',datetime('now')),
+  (1, 'Shoulder Plated Press', 'Shoulders',datetime('now')),
   (1, 'Pull Up',            'Back',     datetime('now')),
   (1, 'Barbell Row',        'Back',     datetime('now')),
   (1, 'Dumbbell Curl',      'Biceps',   datetime('now')),
+  (1, 'Bayesian Curl',      'Biceps',   datetime('now')),
+  (1, 'Incline Curl',       'Biceps',   datetime('now')),
+  (1, 'Preacher Curl',       'Biceps',   datetime('now')),
+  (1, 'Tricep Pushdown',       'Triceps',   datetime('now')),
+  (1, 'Overhead Tricep Extension',       'Triceps',   datetime('now')),
+  (1, 'Tricep Extension',       'Triceps',   datetime('now')),
   (1, 'Squat',              'Quads',    datetime('now')),
   (1, 'Romanian Deadlift',  'Hamstrings',datetime('now'));
 

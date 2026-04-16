@@ -5,6 +5,7 @@ from flask_cors import CORS
 
 from app.routes.workouts import workouts_bp
 from app.routes.exercises import exercises_bp
+from app.routes.plans import plans_bp
 from server.db import close_db, init_db
 
 # Handles all of app creation and config logic
@@ -19,6 +20,7 @@ def create_app():
 
     app.register_blueprint(workouts_bp)
     app.register_blueprint(exercises_bp)
+    app.register_blueprint(plans_bp)
 
     @app.cli.command("init-db")
     def init_db_command():

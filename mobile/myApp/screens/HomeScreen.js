@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -32,16 +32,31 @@ export default function HomeScreen() {
   const [selectedDay, setSelectedDay] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   
-  // In a real app, this would be stored in a database or AsyncStorage
   const [workoutData, setWorkoutData] = useState({
-    todaysSplit: 'Push Day',
-    currentStreak: 9,
-    weeklyCompletion: 67,
-    // Store dates as ISO strings for easier comparison
-    completedDays: {},  // { '2024-12-01': true, '2024-12-03': true }
+    todaysSplit: '—',
+    currentStreak: 0,
+    weeklyCompletion: 0,
+    completedDays: {},
     missedDays: {},
     restDays: {},
   });
+
+  // Fetch live stats from the backend on mount
+  useEffect(() => {
+    fetch('http://localhost:5000/stats')
+      .then(res => res.json())
+      .then(data => {
+        setWorkoutData(prev => ({
+          ...prev,
+          todaysSplit:      data.todays_split ? data.todays_split.day_name : 'Rest Day',
+          currentStreak:    data.streak,
+          weeklyCompletion: data.workouts_this_week,
+        }));
+      })
+      .catch(() => {
+        // Server unreachable — keep default values so the UI still renders
+      });
+  }, []);
 
   // Navigate to previous month
   const goToPreviousMonth = () => {
