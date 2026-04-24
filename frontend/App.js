@@ -4,10 +4,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import HomeScreen from './screens/HomeScreen.js';
-import WorkoutsScreen from './screens/WorkoutsScreen.js';
+import RoutinesScreen from './screens/RoutinesScreen.js';
 import ExercisesScreen from './screens/ExerciseScreen.js';
 import ProfileScreen from './screens/ProfileScreen.js';
-import SettingsScreen from './screens/SettingScreens.js';
+import SettingsScreen from './screens/SettingsScreen.js';
 
 const Tab = createBottomTabNavigator();
 
@@ -24,7 +24,7 @@ export default function App() {
 
               if (route.name === 'Home') {
                 iconName = focused ? 'home' : 'home-outline';
-              } else if (route.name === 'Workouts') {
+              } else if (route.name === 'Routines') {
                 iconName = focused ? 'barbell' : 'barbell-outline';
               } else if (route.name === 'Exercises') {
                 iconName = focused ? 'list' : 'list-outline';
@@ -53,7 +53,7 @@ export default function App() {
           })}
         >
           <Tab.Screen name="Exercises" component={ExercisesScreen} />
-          <Tab.Screen name="Workouts" component={WorkoutsScreen} />
+          <Tab.Screen name="Routines" component={RoutinesScreen} />
           <Tab.Screen name="Home" component={HomeScreen} />
           <Tab.Screen name="Profile" component={ProfileScreen} />
           <Tab.Screen name="Settings" component={SettingsScreen} />

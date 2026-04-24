@@ -20,6 +20,7 @@ import { API } from '../config';
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const [profile, setProfile] = useState(null);
+  const [workouts, setWorkouts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -28,9 +29,14 @@ export default function ProfileScreen() {
 
   const fetchProfile = useCallback(async () => {
     try {
-      const res = await fetch(`${API}/profile`);
-      const data = await res.json();
-      setProfile(data);
+      const [profileRes, workoutsRes] = await Promise.all([
+        fetch(`${API}/profile`),
+        fetch(`${API}/workouts`),
+      ]);
+      const profileData = await profileRes.json();
+      const workoutsData = await workoutsRes.json();
+      setProfile(profileData);
+      setWorkouts(workoutsData);
     } catch {
       // server unreachable
     } finally {
@@ -79,6 +85,12 @@ export default function ProfileScreen() {
     if (!dateStr) return '';
     const d = new Date(dateStr);
     return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+
+  const formatWorkoutDate = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   };
 
   return (
@@ -146,6 +158,22 @@ export default function ProfileScreen() {
                     ) : null}
                   </View>
                   <Text style={styles.prWeight}>{pr.max_weight} lbs</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Workout History */}
+          {workouts.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Workout History</Text>
+              {workouts.map((w) => (
+                <View key={w.id} style={styles.historyRow}>
+                  <View style={styles.historyLeft}>
+                    <Text style={styles.historyName}>{w.name || 'Workout'}</Text>
+                    {w.notes ? <Text style={styles.historyNotes}>{w.notes}</Text> : null}
+                  </View>
+                  <Text style={styles.historyDate}>{formatWorkoutDate(w.workout_date)}</Text>
                 </View>
               ))}
             </View>
@@ -336,6 +364,35 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#818cf8',
     marginLeft: 12,
+  },
+  historyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#1f2937',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 6,
+  },
+  historyLeft: {
+    flex: 1,
+    marginRight: 12,
+  },
+  historyName: {
+    fontSize: 15,
+    color: '#f9fafb',
+    fontWeight: '500',
+  },
+  historyNotes: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  historyDate: {
+    fontSize: 13,
+    color: '#818cf8',
+    fontWeight: '500',
   },
   modalOverlay: {
     flex: 1,

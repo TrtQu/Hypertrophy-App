@@ -13,10 +13,13 @@ def get_plans():
     db = get_db()
     rows = db.execute(
         '''
-        SELECT id, name, description, created_at
-        FROM workout_plans
-        WHERE user_id = ?
-        ORDER BY created_at DESC
+        SELECT wp.id, wp.name, wp.description, wp.created_at,
+               COUNT(pd.id) AS day_count
+        FROM workout_plans wp
+        LEFT JOIN plan_days pd ON pd.plan_id = wp.id
+        WHERE wp.user_id = ?
+        GROUP BY wp.id
+        ORDER BY wp.created_at DESC
         ''',
         (USER_ID,)
     ).fetchall()
