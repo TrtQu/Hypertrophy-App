@@ -10,8 +10,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-const API = 'http://localhost:5000';
+import { API } from '../config';
 
 export default function WorkoutsScreen() {
   const insets = useSafeAreaInsets();

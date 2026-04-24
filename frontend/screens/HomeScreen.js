@@ -13,6 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { API } from '../config';
 
 const { width, height } = Dimensions.get('window');
 
@@ -43,7 +44,7 @@ export default function HomeScreen() {
 
   // Fetch live stats from the backend on mount
   useEffect(() => {
-    fetch('http://localhost:5000/stats')
+    fetch(`${API}/stats`)
       .then(res => res.json())
       .then(data => {
         setWorkoutData(prev => ({
