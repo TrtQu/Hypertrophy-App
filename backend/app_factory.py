@@ -10,6 +10,7 @@ from backend.routes.workouts import workouts_bp
 from backend.routes.exercises import exercises_bp
 from backend.routes.plans import plans_bp
 from backend.routes.profile import profile_bp
+from server.db import connect, load_seed
 
 # Project root is one level up from the backend/ package
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -34,6 +35,15 @@ def create_app():
     def init_db_command():
         init_db()
         print("Initialized the database.")
+
+    @app.cli.command("seed-db")
+    def seed_db_command():
+        conn = connect(app.config["DATABASE"])
+        try:
+            load_seed(conn)
+        finally:
+            conn.close()
+        print("Database seeded.")
 
     @app.route('/')
     def home():

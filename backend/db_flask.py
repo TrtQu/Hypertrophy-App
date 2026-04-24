@@ -30,3 +30,28 @@ def init_db():
     """Initialize the schema on the app's configured database."""
     db = get_db()
     server_db.init_schema(db)
+
+def seed_db():
+    """Populate the database with initial data."""
+    db = get_db()
+    
+    # Example data structure
+    initial_users = [
+        ("admin", "admin@example.com", "secure_hash_123"),
+        ("editor", "editor@example.com", "secure_hash_456")
+    ]
+    
+    # Using a hypothetical 'execute' or 'executemany' from your server_db logic
+    # If server_db.connect returns a standard sqlite3.Connection:
+    cursor = db.cursor()
+    
+    try:
+        cursor.executemany(
+            "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
+            initial_users
+        )
+        db.commit()
+        print("Database seeded successfully.")
+    except Exception as e:
+        db.rollback()
+        print(f"Error seeding database: {e}")
