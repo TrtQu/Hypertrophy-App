@@ -260,24 +260,22 @@ export default function ExerciseScreen() {
         />
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterScroll}
-        contentContainerStyle={styles.filterStrip}
-      >
+      <View style={styles.filterGrid}>
         {['All', ...CATEGORIES].map(cat => (
           <TouchableOpacity
             key={cat}
-            style={[styles.filterChip, activeCategory === cat && styles.filterChipActive]}
+            style={styles.filterChipOuter}
             onPress={() => setActiveCategory(cat)}
+            activeOpacity={0.75}
           >
-            <Text style={[styles.filterChipText, activeCategory === cat && styles.filterChipTextActive]}>
-              {cat}
-            </Text>
+            <View style={[styles.filterChip, activeCategory === cat && styles.filterChipActive]}>
+              <Text style={[styles.filterChipText, activeCategory === cat && styles.filterChipTextActive]}>
+                {cat}
+              </Text>
+            </View>
           </TouchableOpacity>
         ))}
-      </ScrollView>
+      </View>
 
       {loading ? (
         <ActivityIndicator color="#6366f1" style={styles.loader} />
@@ -470,22 +468,24 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#374151',
   },
-  filterScroll: {
-    flexGrow: 0,
-  },
-  filterStrip: {
-    paddingHorizontal: 16,
-    paddingBottom: 10,
-    gap: 8,
+  filterGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  filterChipOuter: {
+    width: '25%',
+    padding: 4,
   },
   filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
     backgroundColor: '#1f2937',
     borderWidth: 1,
     borderColor: '#374151',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   filterChipActive: {
     backgroundColor: '#4f46e5',

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
-export default function settingsscreen() {  
+export default function SettingsScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
