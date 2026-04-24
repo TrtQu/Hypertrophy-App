@@ -6,7 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import HomeScreen from './screens/HomeScreen.js';
 import WorkoutsScreen from './screens/WorkoutsScreen.js';
 import ExercisesScreen from './screens/ExerciseScreen.js';
-import ProfileScreen from './screens/ProfilesScreen.js';
+import ProfileScreen from './screens/ProfileScreen.js';
 import SettingsScreen from './screens/SettingScreens.js';
 
 const Tab = createBottomTabNavigator();

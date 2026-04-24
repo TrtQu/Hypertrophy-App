@@ -5,7 +5,7 @@ Mobile workout tracking app. Three-tier architecture: Expo/React Native frontend
 ## Stack
 
 - Frontend: Expo ~54, React Native 0.81.5, React 19, React Navigation v7 (bottom-tab nav)
-- Backend: Python/Flask, blueprints (`workouts`, `exercises`, `plans`), app factory pattern, Flask-CORS
+- Backend: Python/Flask, blueprints (`workouts`, `exercises`, `plans`, `profile`), app factory pattern, Flask-CORS
 - Database: SQLite (`hypertrophy.db`), schema via `schema.sql`, framework-agnostic connection helpers in `server/db.py`, Flask-specific `g`-object lifecycle in `backend/db_flask.py`
 
 ## Project Structure
@@ -39,7 +39,25 @@ npx expo start
 
 ## Current State
 
-- Flask routes exist but some return placeholder strings — next step is wiring them to real SQLite calls using the queries in `server/queries.sql`
+- All backend routes (`/exercises`, `/workouts`, `/plans`, `/stats`, `/profile`) are fully wired to SQLite
+- `HomeScreen` fetches live stats from `/stats` (streak, weekly count, today's split)
+- `WorkoutsScreen` fetches and displays workout history from `/workouts`
+- `ExerciseScreen` fetches exercises grouped by muscle group; supports search, category filter strip, add (with 2-level muscle picker, bilateral/unilateral toggle, optional notes), and delete
+- `ProfileScreen` fetches user info + lifetime stats + personal records from `/profile`; supports editing username via `PATCH /profile`
+- `exercises` table has `is_unilateral` (INTEGER DEFAULT 0) and `notes` (TEXT) columns added after initial schema — existing DBs need an `ALTER TABLE` migration (see below)
 - `schema.sql` defines the full data model including `plan_days` table
-- `seed.sql` has 9 exercises across 5 muscle groups + a full PPL plan
+- `seed.sql` has exercises across multiple muscle groups + a full PPL plan
 - Run `flask --app backend.wsgi init-db` then reload `seed.sql` if `hypertrophy.db` is out of date
+
+## DB Migration (exercises table)
+
+If `hypertrophy.db` predates the `is_unilateral`/`notes` columns, run once from the project root:
+
+```
+python -c "
+import sqlite3; conn = sqlite3.connect('server/hypertrophy.db')
+conn.execute('ALTER TABLE exercises ADD COLUMN is_unilateral INTEGER NOT NULL DEFAULT 0')
+conn.execute('ALTER TABLE exercises ADD COLUMN notes TEXT')
+conn.commit(); conn.close(); print('Done')
+"
+```

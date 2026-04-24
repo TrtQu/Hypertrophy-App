@@ -9,6 +9,7 @@ from backend.db_flask import close_db, init_db
 from backend.routes.workouts import workouts_bp
 from backend.routes.exercises import exercises_bp
 from backend.routes.plans import plans_bp
+from backend.routes.profile import profile_bp
 
 # Project root is one level up from the backend/ package
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -27,6 +28,7 @@ def create_app():
     app.register_blueprint(workouts_bp)
     app.register_blueprint(exercises_bp)
     app.register_blueprint(plans_bp)
+    app.register_blueprint(profile_bp)
 
     @app.cli.command("init-db")
     def init_db_command():
@@ -36,13 +38,5 @@ def create_app():
     @app.route('/')
     def home():
         return send_from_directory(app.static_folder, 'HomeScreen.js')
-
-    @app.route('/settings')
-    def settings():
-        return "SETTINGS PAGE HI"
-
-    @app.route('/profile')
-    def profile():
-        return "PROFILE PAGE HI"
 
     return app

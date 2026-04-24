@@ -19,6 +19,8 @@ CREATE TABLE exercises (
     user_id INTEGER,
     name TEXT NOT NULL,
     muscle_group TEXT,
+    is_unilateral INTEGER NOT NULL DEFAULT 0,
+    notes TEXT,
     created_at TEXT NOT NULL,
     UNIQUE(user_id, name),
     FOREIGN KEY (user_id) REFERENCES users(id)

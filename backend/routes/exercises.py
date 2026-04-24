@@ -13,7 +13,7 @@ def get_exercises():
     db = get_db()
     rows = db.execute(
         '''
-        SELECT id, name, muscle_group, created_at
+        SELECT id, name, muscle_group, is_unilateral, notes, created_at
         FROM exercises
         WHERE user_id = ?
         ORDER BY muscle_group, name
@@ -24,12 +24,14 @@ def get_exercises():
 
 
 # POST /exercises
-# Body: { "name": "...", "muscle_group": "..." }
+# Body: { "name": "...", "muscle_group": "...", "is_unilateral": false, "notes": "..." }
 @exercises_bp.post('/exercises')
 def create_exercise():
     data = request.get_json()
-    name = data.get('name', '').strip()
-    muscle_group = data.get('muscle_group', '').strip() or None
+    name          = data.get('name', '').strip()
+    muscle_group  = data.get('muscle_group', '').strip() or None
+    is_unilateral = 1 if data.get('is_unilateral') else 0
+    notes         = data.get('notes', '').strip() or None
 
     if not name:
         return jsonify({'error': 'name is required'}), 400
@@ -38,17 +40,22 @@ def create_exercise():
     try:
         cursor = db.execute(
             '''
-            INSERT INTO exercises (user_id, name, muscle_group, created_at)
-            VALUES (?, ?, ?, datetime('now'))
+            INSERT INTO exercises (user_id, name, muscle_group, is_unilateral, notes, created_at)
+            VALUES (?, ?, ?, ?, ?, datetime('now'))
             ''',
-            (USER_ID, name, muscle_group)
+            (USER_ID, name, muscle_group, is_unilateral, notes)
         )
         db.commit()
         new_id = cursor.lastrowid
     except Exception:
         return jsonify({'error': f"Exercise '{name}' already exists"}), 409
 
-    return jsonify({'id': new_id, 'name': name, 'muscle_group': muscle_group}), 201
+    return jsonify({
+        'id': new_id, 'name': name,
+        'muscle_group': muscle_group,
+        'is_unilateral': bool(is_unilateral),
+        'notes': notes,
+    }), 201
 
 
 # DELETE /exercises/<id>
