@@ -2,8 +2,7 @@
 node_modules/
 package-lock.json
 package.json
-.DS_Store
-node_modules/
-package-lock.json
-package.json
 *.db
+env/
+__pycache__/
+*.pyc
