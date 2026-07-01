@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { SettingsProvider } from './context/SettingsContext';
 import HomeScreen from './screens/HomeScreen.js';
 import RoutinesScreen from './screens/RoutinesScreen.js';
 import ExercisesScreen from './screens/ExerciseScreen.js';
@@ -13,6 +14,7 @@ const Tab = createBottomTabNavigator();
 
 export default function App() {
   return (
+    <SettingsProvider>
     <SafeAreaProvider>
       <NavigationContainer>
         <Tab.Navigator
@@ -60,5 +62,6 @@ export default function App() {
         </Tab.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
+    </SettingsProvider>
   );
 }
