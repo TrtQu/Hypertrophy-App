@@ -28,10 +28,10 @@ def get_exercises():
 @exercises_bp.post('/exercises')
 def create_exercise():
     data = request.get_json()
-    name          = data.get('name', '').strip()
-    muscle_group  = data.get('muscle_group', '').strip() or None
+    name          = (data.get('name') or '').strip()
+    muscle_group  = (data.get('muscle_group') or '').strip() or None
     is_unilateral = 1 if data.get('is_unilateral') else 0
-    notes         = data.get('notes', '').strip() or None
+    notes         = (data.get('notes') or '').strip() or None
 
     if not name:
         return jsonify({'error': 'name is required'}), 400
@@ -62,9 +62,8 @@ def create_exercise():
 @exercises_bp.delete('/exercises/<int:exercise_id>')
 def delete_exercise(exercise_id):
     db = get_db()
-    db.execute(
-        'DELETE FROM exercises WHERE id = ? AND user_id = ?',
-        (exercise_id, USER_ID)
-    )
+    db.execute('DELETE FROM plan_exercises WHERE exercise_id = ?', (exercise_id,))
+    db.execute('DELETE FROM sets WHERE exercise_id = ?', (exercise_id,))
+    db.execute('DELETE FROM exercises WHERE id = ? AND user_id = ?', (exercise_id, USER_ID))
     db.commit()
     return jsonify({'deleted': exercise_id})

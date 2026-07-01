@@ -90,10 +90,13 @@ export default function ExerciseScreen() {
   const [isUnilateral, setIsUnilateral] = useState(false);
   const [newNotes, setNewNotes] = useState('');
   const [saving, setSaving] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
 
   const fetchExercises = useCallback(async () => {
+    setFetchError(false);
     try {
       const res = await fetch(`${API}/exercises`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const groups = {};
       for (const ex of data) {
@@ -106,7 +109,7 @@ export default function ExerciseScreen() {
         .map(([title, exercises]) => ({ title, data: exercises }));
       setSections(sorted);
     } catch {
-      // server unreachable
+      setFetchError(true);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -171,8 +174,9 @@ export default function ExerciseScreen() {
         setModalVisible(false);
         fetchExercises();
       } else {
-        const err = await res.json();
-        Alert.alert('Error', err.error || 'Could not save exercise.');
+        let msg = 'Could not save exercise.';
+        try { msg = (await res.json()).error || msg; } catch {}
+        Alert.alert('Error', msg);
       }
     } catch {
       Alert.alert('Error', 'Could not reach server.');
@@ -279,6 +283,14 @@ export default function ExerciseScreen() {
 
       {loading ? (
         <ActivityIndicator color="#6366f1" style={styles.loader} />
+      ) : fetchError ? (
+        <View style={styles.errorState}>
+          <Text style={styles.errorTitle}>Can't reach server</Text>
+          <Text style={styles.errorSub}>Make sure the Flask backend is running{'\n'}and the IP in config.js matches your machine.</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={() => { setLoading(true); fetchExercises(); }}>
+            <Text style={styles.retryBtnText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
       ) : (
         <SectionList
           sections={filteredSections}
@@ -711,6 +723,36 @@ const styles = StyleSheet.create({
   chipTextSelected: {
     color: '#ffffff',
     fontWeight: '600',
+  },
+  errorState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#f87171',
+    marginBottom: 8,
+  },
+  errorSub: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  retryBtn: {
+    backgroundColor: '#6366f1',
+    paddingHorizontal: 28,
+    paddingVertical: 12,
+    borderRadius: 10,
+  },
+  retryBtnText: {
+    color: '#ffffff',
+    fontWeight: '600',
+    fontSize: 15,
   },
   modalActions: {
     flexDirection: 'row',
