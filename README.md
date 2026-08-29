@@ -4,22 +4,22 @@ A workout tracker for strength training. You build routines, log the sets you
 do, and see your history and personal records.
 
 It is a phone app (Expo / React Native) talking to a small Flask API that
-stores everything in a local SQLite file. Everything runs on your own machine —
-there is no hosted server.
+stores everything in a local SQLite file. Everything runs on your own machine.
+There is no hosted server.
 
 ## What you can do
 
-- **Sign in** — create an account with an email, username, and password, or
+- **Sign in**: create an account with an email, username, and password, or
   sign in to one you already have. The app remembers you until you sign out.
-- **Exercises** — browse exercises by muscle group, search them, add your own
+- **Exercises**: browse exercises by muscle group, search them, add your own
   (with a muscle picker, a bilateral/unilateral flag, and notes), delete them.
-- **Routines** — create a training plan, add exercises to its days, set target
+- **Routines**: create a training plan, add exercises to its days, set target
   sets and reps, remove exercises, delete the plan.
-- **Home** — see your current streak, how many workouts you did this week, and
+- **Home**: see your current streak, how many workouts you did this week, and
   which plan day falls on today.
-- **Profile** — your username, lifetime totals, and personal records. You can
+- **Profile**: your username, lifetime totals, and personal records. You can
   rename yourself.
-- **Settings** — switch between metric and imperial, set a rest timer and a
+- **Settings**: switch between metric and imperial, set a rest timer and a
   default weight increment, sign out.
 
 ## How it is put together
@@ -109,7 +109,7 @@ willing to lose.
 
 The seeded account is `test@test.com` with the password `password123`. Set
 `SECRET_KEY` in the environment before you run the app anywhere but your own
-machine — the built-in default signs guessable tokens.
+machine. The built-in default signs guessable tokens.
 
 ### Frontend
 
