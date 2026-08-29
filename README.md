@@ -101,8 +101,11 @@ From the project root, with your virtualenv active:
 pip install -r requirements.txt
 flask --app backend.wsgi init-db     # create the tables
 flask --app backend.wsgi seed-db     # load sample exercises and a PPL plan
-flask --app backend.wsgi run --debug -p 5001
+flask --app backend.wsgi run --debug -p 5001 --host 0.0.0.0
 ```
+
+`--host 0.0.0.0` lets your phone reach the server. Without it Flask answers
+only calls from the machine it runs on.
 
 `init-db` wipes and recreates the schema. Only run it on a database you are
 willing to lose.

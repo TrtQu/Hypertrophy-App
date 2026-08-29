@@ -62,9 +62,9 @@ export default function AuthScreen() {
         style={styles.flex}
       >
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <Text style={styles.title}>Hypertrophy</Text>
+          <Text style={styles.title}>Hypertrophy App</Text>
           <Text style={styles.subtitle}>
-            {isSignUp ? 'Create an account to start tracking.' : 'Sign in to your training log.'}
+            {isSignUp ? 'Create an account to start tracking.' : 'Sign in.'}
           </Text>
 
           <View style={styles.card}>
