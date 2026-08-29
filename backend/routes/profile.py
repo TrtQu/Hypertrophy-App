@@ -1,9 +1,10 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, g, request, jsonify
+
+from backend.auth import require_login
 from backend.db_flask import get_db
 
 profile_bp = Blueprint('profile', __name__)
-
-USER_ID = 1  # hardcoded until auth is implemented
+profile_bp.before_request(require_login)
 
 
 # GET /profile
@@ -14,7 +15,7 @@ def get_profile():
 
     user = db.execute(
         'SELECT id, username, email, created_at FROM users WHERE id = ?',
-        (USER_ID,)
+        (g.user_id,)
     ).fetchone()
 
     if not user:
@@ -22,7 +23,7 @@ def get_profile():
 
     total_workouts = db.execute(
         'SELECT COUNT(*) AS count FROM workouts WHERE user_id = ?',
-        (USER_ID,)
+        (g.user_id,)
     ).fetchone()['count']
 
     total_sets = db.execute(
@@ -32,7 +33,7 @@ def get_profile():
         JOIN workouts w ON w.id = s.workout_id
         WHERE w.user_id = ?
         ''',
-        (USER_ID,)
+        (g.user_id,)
     ).fetchone()['count']
 
     fav_row = db.execute(
@@ -46,7 +47,7 @@ def get_profile():
         ORDER BY set_count DESC
         LIMIT 1
         ''',
-        (USER_ID,)
+        (g.user_id,)
     ).fetchone()
 
     pr_rows = db.execute(
@@ -60,7 +61,7 @@ def get_profile():
         ORDER BY max_weight DESC
         LIMIT 10
         ''',
-        (USER_ID,)
+        (g.user_id,)
     ).fetchall()
 
     return jsonify({
@@ -88,7 +89,7 @@ def update_profile():
 
     db = get_db()
     try:
-        db.execute('UPDATE users SET username = ? WHERE id = ?', (username, USER_ID))
+        db.execute('UPDATE users SET username = ? WHERE id = ?', (username, g.user_id))
         db.commit()
     except Exception as e:
         db.rollback()

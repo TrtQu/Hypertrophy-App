@@ -39,6 +39,8 @@ npx expo start
 
 ## Current State
 
+- Auth is token-based: `POST /auth/signup` and `POST /auth/login` return a signed user id (`backend/auth.py`); every other blueprint calls `require_login` in `before_request` and reads `g.user_id`. The frontend keeps the token in expo-secure-store and sends it via `frontend/api.js`
+- `python tests/test_api.py` runs end-to-end checks against a throwaway seeded DB (no test framework needed)
 - All backend routes (`/exercises`, `/workouts`, `/plans`, `/stats`, `/profile`) are fully wired to SQLite
 - `HomeScreen` fetches live stats from `/stats` (streak, weekly count, today's split)
 - `WorkoutsScreen` fetches and displays workout history from `/workouts`

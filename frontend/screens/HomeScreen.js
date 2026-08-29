@@ -11,7 +11,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { API } from '../config';
+import { api } from '../api';
 
 const { width } = Dimensions.get('window');
 
@@ -56,7 +56,7 @@ export default function HomeScreen() {
   const todayLabel = `${DAY_NAMES[today.getDay()]}, ${MONTH_NAMES[today.getMonth()]} ${today.getDate()}`;
 
   useEffect(() => {
-    fetch(`${API}/stats`)
+    api(`/stats`)
       .then(res => res.json())
       .then(data => {
         setWorkoutData(prev => ({

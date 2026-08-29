@@ -1,9 +1,10 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, g, request, jsonify
+
+from backend.auth import require_login
 from backend.db_flask import get_db
 
 workouts_bp = Blueprint('workouts', __name__)
-
-USER_ID = 1  # hardcoded until auth is implemented
+workouts_bp.before_request(require_login)
 
 
 # GET /workouts
@@ -18,7 +19,7 @@ def get_workouts():
         WHERE user_id = ?
         ORDER BY workout_date DESC
         ''',
-        (USER_ID,)
+        (g.user_id,)
     ).fetchall()
     return jsonify([dict(row) for row in rows])
 
@@ -52,7 +53,7 @@ def get_workout(workout_id):
         WHERE w.id = ? AND w.user_id = ?
         ORDER BY e.name, s.set_number, s.side
         ''',
-        (workout_id, USER_ID)
+        (workout_id, g.user_id)
     ).fetchall()
 
     if not rows:
@@ -105,13 +106,28 @@ def create_workout():
         return jsonify({'error': 'workout_date is required'}), 400
 
     db = get_db()
+
+    # Every set must name one of this user's own exercises.
+    exercise_ids = {s['exercise_id'] for s in sets}
+    if exercise_ids:
+        owned = db.execute(
+            f'''
+            SELECT COUNT(*) AS n FROM exercises
+            WHERE user_id = ? AND id IN ({",".join("?" * len(exercise_ids))})
+            ''',
+            (g.user_id, *exercise_ids)
+        ).fetchone()['n']
+
+        if owned != len(exercise_ids):
+            return jsonify({'error': 'Unknown exercise'}), 400
+
     try:
         cursor = db.execute(
             '''
             INSERT INTO workouts (user_id, workout_date, name, notes, plan_id, created_at)
             VALUES (?, ?, ?, ?, ?, datetime('now'))
             ''',
-            (USER_ID, workout_date, name, notes, plan_id)
+            (g.user_id, workout_date, name, notes, plan_id)
         )
         workout_id = cursor.lastrowid
 
@@ -147,9 +163,18 @@ def create_workout():
 @workouts_bp.delete('/workouts/<int:workout_id>')
 def delete_workout(workout_id):
     db = get_db()
+
+    owned = db.execute(
+        'SELECT id FROM workouts WHERE id = ? AND user_id = ?',
+        (workout_id, g.user_id)
+    ).fetchone()
+
+    if not owned:
+        return jsonify({'error': 'Workout not found'}), 404
+
     try:
         db.execute('DELETE FROM sets WHERE workout_id = ?', (workout_id,))
-        db.execute('DELETE FROM workouts WHERE id = ? AND user_id = ?', (workout_id, USER_ID))
+        db.execute('DELETE FROM workouts WHERE id = ? AND user_id = ?', (workout_id, g.user_id))
         db.commit()
     except Exception as e:
         db.rollback()
@@ -172,7 +197,7 @@ def get_stats():
         WHERE user_id = ?
           AND strftime('%Y-%W', workout_date) = strftime('%Y-%W', 'now')
         ''',
-        (USER_ID,)
+        (g.user_id,)
     ).fetchone()
     workouts_this_week = weekly_row['count']
 
@@ -184,7 +209,7 @@ def get_stats():
         WHERE user_id = ?
         ORDER BY workout_date DESC
         ''',
-        (USER_ID,)
+        (g.user_id,)
     ).fetchall()
 
     from datetime import date, timedelta
@@ -210,7 +235,7 @@ def get_stats():
         ORDER BY wp.created_at DESC
         LIMIT 1
         ''',
-        (USER_ID,)
+        (g.user_id,)
     ).fetchone()
 
     return jsonify({

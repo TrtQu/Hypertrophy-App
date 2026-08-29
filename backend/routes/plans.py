@@ -1,9 +1,10 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, g, request, jsonify
+
+from backend.auth import require_login
 from backend.db_flask import get_db
 
 plans_bp = Blueprint('plans', __name__)
-
-USER_ID = 1  # hardcoded until auth is implemented
+plans_bp.before_request(require_login)
 
 
 # GET /plans
@@ -19,7 +20,7 @@ def get_plans():
         WHERE user_id = ?
         ORDER BY created_at DESC
         ''',
-        (USER_ID,)
+        (g.user_id,)
     ).fetchall()
 
     if not plan_rows:
@@ -90,7 +91,7 @@ def get_plan(plan_id):
         WHERE wp.id = ? AND wp.user_id = ?
         ORDER BY pd.order_in_plan, pe.order_in_day
         ''',
-        (plan_id, USER_ID)
+        (plan_id, g.user_id)
     ).fetchall()
 
     if not rows:
@@ -141,7 +142,7 @@ def get_plan_detail(plan_id):
 
     plan = db.execute(
         'SELECT id, name FROM workout_plans WHERE id = ? AND user_id = ?',
-        (plan_id, USER_ID)
+        (plan_id, g.user_id)
     ).fetchone()
 
     if not plan:
@@ -183,7 +184,7 @@ def get_plan_detail(plan_id):
             ORDER BY w.workout_date DESC, s.set_number
             LIMIT 20
             ''',
-            (USER_ID, r['exercise_id'])
+            (g.user_id, r['exercise_id'])
         ).fetchall()
 
         # Keep only the most recent session's sets (stop at the first repeated set_number)
@@ -220,7 +221,7 @@ def update_plan_sets(plan_id):
 
     plan = db.execute(
         'SELECT id FROM workout_plans WHERE id = ? AND user_id = ?',
-        (plan_id, USER_ID)
+        (plan_id, g.user_id)
     ).fetchone()
 
     if not plan:
@@ -268,11 +269,19 @@ def add_exercise_to_plan(plan_id):
 
     plan = db.execute(
         'SELECT id FROM workout_plans WHERE id = ? AND user_id = ?',
-        (plan_id, USER_ID)
+        (plan_id, g.user_id)
     ).fetchone()
 
     if not plan:
         return jsonify({'error': 'Plan not found'}), 404
+
+    exercise = db.execute(
+        'SELECT id FROM exercises WHERE id = ? AND user_id = ?',
+        (exercise_id, g.user_id)
+    ).fetchone()
+
+    if not exercise:
+        return jsonify({'error': 'Exercise not found'}), 404
 
     # Use the plan's first day
     day = db.execute(
@@ -310,6 +319,15 @@ def add_exercise_to_plan(plan_id):
 @plans_bp.delete('/plans/<int:plan_id>/exercises/<int:plan_exercise_id>')
 def remove_exercise_from_plan(plan_id, plan_exercise_id):
     db = get_db()
+
+    plan = db.execute(
+        'SELECT id FROM workout_plans WHERE id = ? AND user_id = ?',
+        (plan_id, g.user_id)
+    ).fetchone()
+
+    if not plan:
+        return jsonify({'error': 'Plan not found'}), 404
+
     try:
         db.execute(
             'DELETE FROM plan_exercises WHERE id = ? AND plan_id = ?',
@@ -342,7 +360,7 @@ def create_plan():
             INSERT INTO workout_plans (user_id, name, description, created_at)
             VALUES (?, ?, ?, datetime('now'))
             ''',
-            (USER_ID, name, description)
+            (g.user_id, name, description)
         )
         plan_id = cursor.lastrowid
 
@@ -393,10 +411,19 @@ def create_plan():
 @plans_bp.delete('/plans/<int:plan_id>')
 def delete_plan(plan_id):
     db = get_db()
+
+    plan = db.execute(
+        'SELECT id FROM workout_plans WHERE id = ? AND user_id = ?',
+        (plan_id, g.user_id)
+    ).fetchone()
+
+    if not plan:
+        return jsonify({'error': 'Plan not found'}), 404
+
     try:
         db.execute('DELETE FROM plan_exercises WHERE plan_id = ?', (plan_id,))
         db.execute('DELETE FROM plan_days WHERE plan_id = ?', (plan_id,))
-        db.execute('DELETE FROM workout_plans WHERE id = ? AND user_id = ?', (plan_id, USER_ID))
+        db.execute('DELETE FROM workout_plans WHERE id = ? AND user_id = ?', (plan_id, g.user_id))
         db.commit()
     except Exception as e:
         db.rollback()

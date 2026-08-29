@@ -19,9 +19,16 @@ DELETE FROM sqlite_sequence WHERE name IN (
 
 -- =====================
 -- Users
+-- Sign in as test@test.com with the password "password123".
+-- The hash below is Werkzeug scrypt; it is sample data, not a secret.
 -- =====================
 INSERT INTO users (email, password_hash, username, created_at)
-VALUES ('test@test.com', 'hashed_password', 'testuser', datetime('now'));
+VALUES (
+  'test@test.com',
+  'scrypt:32768:8:1$QB2XFcQsPAm1iibu$56d9edf920f093dad07208eebb7b69b8e1c4b709b0b299da0dc77f96ba2a63f6d6bc0828aaffd3667cdc6cfb0abbcd65cae54ad500330d0350d6d0633815d8db',
+  'testuser',
+  datetime('now')
+);
 
 -- =====================
 -- Exercises

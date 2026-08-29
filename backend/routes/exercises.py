@@ -1,9 +1,10 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, g, request, jsonify
+
+from backend.auth import require_login
 from backend.db_flask import get_db
 
 exercises_bp = Blueprint('exercises', __name__)
-
-USER_ID = 1  # hardcoded until auth is implemented
+exercises_bp.before_request(require_login)
 
 
 # GET /exercises
@@ -18,7 +19,7 @@ def get_exercises():
         WHERE user_id = ?
         ORDER BY muscle_group, name
         ''',
-        (USER_ID,)
+        (g.user_id,)
     ).fetchall()
     return jsonify([dict(row) for row in rows])
 
@@ -43,7 +44,7 @@ def create_exercise():
             INSERT INTO exercises (user_id, name, muscle_group, is_unilateral, notes, created_at)
             VALUES (?, ?, ?, ?, ?, datetime('now'))
             ''',
-            (USER_ID, name, muscle_group, is_unilateral, notes)
+            (g.user_id, name, muscle_group, is_unilateral, notes)
         )
         db.commit()
         new_id = cursor.lastrowid
@@ -62,8 +63,17 @@ def create_exercise():
 @exercises_bp.delete('/exercises/<int:exercise_id>')
 def delete_exercise(exercise_id):
     db = get_db()
+
+    owned = db.execute(
+        'SELECT id FROM exercises WHERE id = ? AND user_id = ?',
+        (exercise_id, g.user_id)
+    ).fetchone()
+
+    if not owned:
+        return jsonify({'error': 'Exercise not found'}), 404
+
     db.execute('DELETE FROM plan_exercises WHERE exercise_id = ?', (exercise_id,))
     db.execute('DELETE FROM sets WHERE exercise_id = ?', (exercise_id,))
-    db.execute('DELETE FROM exercises WHERE id = ? AND user_id = ?', (exercise_id, USER_ID))
+    db.execute('DELETE FROM exercises WHERE id = ? AND user_id = ?', (exercise_id, g.user_id))
     db.commit()
     return jsonify({'deleted': exercise_id})

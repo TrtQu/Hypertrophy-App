@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { API } from '../config';
+import { api } from '../api';
 
 const MUSCLE_HIERARCHY = {
   Chest: [
@@ -95,7 +95,7 @@ export default function ExerciseScreen() {
   const fetchExercises = useCallback(async () => {
     setFetchError(false);
     try {
-      const res = await fetch(`${API}/exercises`);
+      const res = await api(`/exercises`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const groups = {};
@@ -160,7 +160,7 @@ export default function ExerciseScreen() {
     if (!name) return;
     setSaving(true);
     try {
-      const res = await fetch(`${API}/exercises`, {
+      const res = await api(`/exercises`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -193,7 +193,7 @@ export default function ExerciseScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            await fetch(`${API}/exercises/${id}`, { method: 'DELETE' });
+            await api(`/exercises/${id}`, { method: 'DELETE' });
             fetchExercises();
           } catch {
             Alert.alert('Error', 'Could not reach server.');

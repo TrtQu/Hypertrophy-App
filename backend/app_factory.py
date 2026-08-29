@@ -2,10 +2,12 @@
 
 import os
 
-from flask import Flask, send_from_directory
+from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
+from werkzeug.exceptions import HTTPException
 
 from backend.db_flask import close_db, init_db
+from backend.routes.auth import auth_bp
 from backend.routes.workouts import workouts_bp
 from backend.routes.exercises import exercises_bp
 from backend.routes.plans import plans_bp
@@ -24,8 +26,17 @@ def create_app():
     CORS(app)
 
     app.config["DATABASE"] = _DEFAULT_DB_PATH
+    # Tokens are signed with this. Set SECRET_KEY in the environment for
+    # anything beyond local use — the default signs predictable tokens.
+    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
     app.teardown_appcontext(close_db)
 
+    # Errors raised by abort() should look like every other response.
+    @app.errorhandler(HTTPException)
+    def json_error(e):
+        return jsonify({"error": e.description}), e.code
+
+    app.register_blueprint(auth_bp)
     app.register_blueprint(workouts_bp)
     app.register_blueprint(exercises_bp)
     app.register_blueprint(plans_bp)

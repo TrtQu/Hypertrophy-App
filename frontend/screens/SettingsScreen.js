@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 
 const APP_VERSION = '1.0.0';
@@ -35,6 +36,7 @@ const WEIGHT_INCREMENT_OPTIONS = {
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
+  const { signOut } = useAuth();
   const { unitSystem, switchUnitSystem, restTimer, setRestTimer, weightIncrement, setWeightIncrement } = useSettings();
 
   // ── Reminders ──────────────────────────────────────────────────────────────
@@ -75,6 +77,17 @@ export default function SettingsScreen() {
           style: 'destructive',
           onPress: () => Alert.alert('Cleared', 'Local data has been reset.'),
         },
+      ],
+    );
+  };
+
+  const handleSignOut = () => {
+    Alert.alert(
+      'Sign Out',
+      'You will need your email and password to get back in.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Sign Out', style: 'destructive', onPress: signOut },
       ],
     );
   };
@@ -264,6 +277,18 @@ export default function SettingsScreen() {
             <View style={styles.rowRight}>
               <Text style={styles.chevron}>›</Text>
             </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* ── Account ── */}
+        <Text style={styles.sectionLabel}>Account</Text>
+        <View style={styles.card}>
+          <TouchableOpacity style={styles.row} onPress={handleSignOut}>
+            <View style={styles.rowLeft}>
+              <Text style={[styles.rowTitle, styles.danger]}>Sign Out</Text>
+              <Text style={styles.rowSub}>Forget the sign-in saved on this device</Text>
+            </View>
+            <Text style={styles.chevron}>›</Text>
           </TouchableOpacity>
         </View>
 

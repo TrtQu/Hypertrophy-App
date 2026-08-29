@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { API } from '../config';
+import { api } from '../api';
 
 export default function RoutinesScreen() {
   const insets = useSafeAreaInsets();
@@ -54,7 +54,7 @@ export default function RoutinesScreen() {
   // ── Fetch routines ────────────────────────────────────────────
   const fetchRoutines = useCallback(async () => {
     try {
-      const res = await fetch(`${API}/plans`);
+      const res = await api(`/plans`);
       const data = await res.json();
       setRoutines(data);
     } catch {
@@ -76,7 +76,7 @@ export default function RoutinesScreen() {
     if (!name) return;
     setSaving(true);
     try {
-      const res = await fetch(`${API}/plans`, {
+      const res = await api(`/plans`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),
@@ -95,7 +95,7 @@ export default function RoutinesScreen() {
         text: 'Delete', style: 'destructive',
         onPress: async () => {
           try {
-            await fetch(`${API}/plans/${id}`, { method: 'DELETE' });
+            await api(`/plans/${id}`, { method: 'DELETE' });
             fetchRoutines();
           } catch { Alert.alert('Error', 'Could not reach server.'); }
         },
@@ -111,7 +111,7 @@ export default function RoutinesScreen() {
     setEditLoading(true);
     setEditVisible(true);
     try {
-      const res = await fetch(`${API}/plans/${routineId}/detail`);
+      const res = await api(`/plans/${routineId}/detail`);
       const data = await res.json();
       // Convert numeric values to strings for TextInput
       setEditExercises(data.exercises.map(ex => ({
@@ -175,7 +175,7 @@ export default function RoutinesScreen() {
           target_weight: parseFloat(s.weight) || null,
         })),
       }));
-      const res = await fetch(`${API}/plans/${editRoutineId}/sets`, {
+      const res = await api(`/plans/${editRoutineId}/sets`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ exercises }),
@@ -189,7 +189,7 @@ export default function RoutinesScreen() {
   // ── Add exercise ──────────────────────────────────────────────
   const openAddExercise = async (routineId) => {
     try {
-      const res = await fetch(`${API}/exercises`);
+      const res = await api(`/exercises`);
       setAllExercises(await res.json());
     } catch { setAllExercises([]); }
     setExSearch(''); setPickedEx(null);
@@ -211,7 +211,7 @@ export default function RoutinesScreen() {
   const saveExerciseToRoutine = async () => {
     setAddingSaving(true);
     try {
-      const res = await fetch(`${API}/plans/${addExRoutineId}/exercises`, {
+      const res = await api(`/plans/${addExRoutineId}/exercises`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -227,7 +227,7 @@ export default function RoutinesScreen() {
         // Reload edit exercises if we added from within the edit modal
         if (editVisible && addExRoutineId === editRoutineId) {
           try {
-            const detailRes = await fetch(`${API}/plans/${editRoutineId}/detail`);
+            const detailRes = await api(`/plans/${editRoutineId}/detail`);
             const data = await detailRes.json();
             setEditExercises(data.exercises.map(ex => ({
               ...ex,
@@ -253,7 +253,7 @@ export default function RoutinesScreen() {
         text: 'Remove', style: 'destructive',
         onPress: async () => {
           try {
-            await fetch(`${API}/plans/${editRoutineId}/exercises/${planExerciseId}`, { method: 'DELETE' });
+            await api(`/plans/${editRoutineId}/exercises/${planExerciseId}`, { method: 'DELETE' });
             setEditExercises(prev => prev.filter(e => e.plan_exercise_id !== planExerciseId));
             fetchRoutines();
           } catch { Alert.alert('Error', 'Could not reach server.'); }

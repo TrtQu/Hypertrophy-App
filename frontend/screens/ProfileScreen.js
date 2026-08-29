@@ -17,7 +17,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { API } from '../config';
+import { api } from '../api';
 import { useSettings } from '../context/SettingsContext';
 
 const { width } = Dimensions.get('window');
@@ -103,8 +103,8 @@ export default function ProfileScreen() {
   const fetchProfile = useCallback(async () => {
     try {
       const [profileRes, workoutsRes] = await Promise.all([
-        fetch(`${API}/profile`),
-        fetch(`${API}/workouts`),
+        api(`/profile`),
+        api(`/workouts`),
       ]);
       setProfile(await profileRes.json());
       setWorkouts(await workoutsRes.json());
@@ -125,7 +125,7 @@ export default function ProfileScreen() {
     if (!username) return;
     setSaving(true);
     try {
-      const res = await fetch(`${API}/profile`, {
+      const res = await api(`/profile`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username }),
